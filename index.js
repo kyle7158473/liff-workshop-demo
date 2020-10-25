@@ -1,32 +1,166 @@
-require('dotenv').config();
-const fs = require('fs');
-const path = require('path');
-const express = require('express');
-const https = require('https');
-const app = express();
-const port = process.env.PORT || 5000;
-const myLiffId = process.env.MY_LIFF_ID;
-const redirectUri = process.env.REDIRECT_URI;
+var express = require('express');
+var app = express();
+/*const port = process.env.PORT || 5000;
+const myLiffId = process.env.MY_LIFF_ID;*/
+app.set('view engine', 'ejs');
+
+
+
+var bodyParser = require("body-parser");
+
+var fs = require("fs");
+var file =  "calendar\\calender.db";
+var exists = fs.existsSync(file);
+if(!exists) {
+	console.log("No DB Found.");
+}
+
+var sqlite3 = require("sqlite3").verbose();
+
+var __dirname = "C:\\Users\\CJLin\\Desktop\\Calendar\\"
+
+app.use(bodyParser.urlencoded({extended:true}))
 
 app.use(express.static('public'));
 
-app.get('/send-id', function(req, res) {
-    res.json({id: myLiffId, redirectUri });
+app.get('/calendar', function(req, res) {
+	
+	var Name = "Peter"
+	var data = {'row':[]}
+
+    var db = new sqlite3.Database(file);
+	db.serialize(() => {
+		db.each(`SELECT V.name, V.id 
+            FROM V, P
+            WHERE V.id=P.id AND P.participant=(?)`,[Name], function(err, row) {
+	    		
+	    		if (err) {
+	    			return console.error(err.message);
+	    		}
+	    		data['row'].push( {'name':row.name, 'id':row.id} )
+	    		//data['row'].push( {"name":'漢堡', "id":'100'} );
+	    		console.log("name: "+row.name+" id: "+row.id);
+
+	    });
+	});
+	db.close();
+	
+	//var data = {row:[{"name":'漢堡', "id":'100'}, {"name":'西瓜', "id":'300'}]}
+    //res.render("calendar", data);
+    res.sendFile(__dirname+"calendar\\calendar.html");
 });
 
-if (process.env.NODE_ENV === 'development') {
-    const devCert = fs.readFileSync(
-        path.resolve(__dirname, 'cert/localhost.pem')
-    );
-    const devKey = fs.readFileSync(
-        path.resolve(__dirname, 'cert/localhost-key.pem')
-    );
-    const server = https.createServer({
-        key: devKey,
-        cert: devCert
-    }, app);
-    server.listen(8000, function() {
-        console.log(`https listening on port 8000!`);
+app.get('/create', function(req, res) {
+    res.sendFile(__dirname+"calendar\\create.html");
+});
+
+app.get('/bill', function(req, res) {
+	/*
+    var Name = "Peter"
+    var date = "10/"+req.query.date+"/2020"
+
+    var data = {"participant":Name, "row":[]}
+
+    var id;
+
+    var db = new sqlite3.Database(file);
+	db.serialize(() => {
+		db.each(`SELECT V.name, V.id 
+            FROM V, P
+            WHERE V.id=P.id AND P.participant=(?) AND P.id LIKE '(?)%'`,[Name, date], function(err, row) => {
+	    		if (err) {
+	    			return console.error(err.message);
+	    		}
+	    		//console.log(row.id + "\t" + row.name);
+	    		data["name"] = row.name
+	    		id = row.id
+	    	}
+	    );
+
+		db.each(`SELECT M.matter, M.money 
+            FROM M
+            WHERE M.id=(?) AND M.participant=(?)`,[id, Name], function(err, row) => {
+    			if (err) {
+    				return console.error(err.message);
+    			}
+    			//console.log(row.id + "\t" + row.name);
+    			data.append( {"matter":row.matter, "money":row.money} )
+    		}
+	    );
+	});
+	db.close();
+	*/
+
+	//var data = {name:"西子灣", row:[ {"matter":'漢堡', "price":'100'}, {"matter":'西瓜', "price":'300'} ]}
+    //res.render("bill", data);
+    res.sendFile(__dirname+"calendar\\bill.html");
+});
+
+app.post('/vote', function(req, res) {
+	var Datapicker = req.body.Datapicker;
+    var Time = req.body.Time;
+	var AMPM = req.body.AMPM;
+	/*
+	var Activity = req.body.Activity;
+	var Place = req.body.Place;
+	*/
+	var Name = "Peter"
+	
+	if( !(Datapicker && Time && AMPM && Activity && Place) ){
+		res.redirect('/calendar')
+		//res.send(Time+' '+Activity+' '+Place+' '+Datapicker+' '+AMPM)
+	}
+	/*
+	var db = new sqlite3.Database(file);
+	
+	db.run("INSERT INTO P(id, participant) VALUES(?,?)",[Datapicker+Time+AMPM, Name], function(err, row) {
+		if (err) {
+			return console.log(err.message);
+		}
     });
-}
-app.listen(port, () => console.log(`http listening on port ${port}!`));
+	
+	db.close();
+	*/
+	res.redirect('/calendar')
+	
+});
+
+
+app.post('/regist', function(req, res) {
+	var Datapicker = req.body.Datapicker;
+    var Time = req.body.Time;
+	var AMPM = req.body.AMPM;
+	var Activity = req.body.Activity;
+	var Place = req.body.Place;
+	//res.send(Time+' '+Activity+' '+Place+' '+Datapicker+' '+AMPM)
+	var Name = "Peter"
+	
+	if( !(Datapicker && Time && AMPM && Activity && Place) ){
+		//res.send(Time+' '+Activity+' '+Place+' '+Datapicker+' '+AMPM)
+		res.redirect('/calendar')
+	}
+	/*
+	var db = new sqlite3.Database(file);
+    db.run("INSERT INTO V(id, name, location) VALUES(?,?,?)",[Datapicker+Time+AMPM, Activity, Place], function(err, row) {
+		if (err) {
+			return console.log(err.message);
+		}
+    });
+	db.run("INSERT INTO P(id, participant) VALUES(?,?)",[Datapicker+Time+AMPM, Name], function(err, row) {
+		if (err) {
+			return console.log(err.message);
+		}
+    });
+	
+	db.close();
+	*/
+	res.redirect('/calendar')
+	
+});
+
+
+
+/*app.listen(port, () => console.log(`app listening on port ${port}!`));*/
+app.listen(8000,function(req,res){
+	console.log("app listening on port 8000!")
+})
