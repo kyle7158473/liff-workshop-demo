@@ -1,19 +1,20 @@
 {
-  "name": "meichu2020",
+  "name": "liff-demo",
   "version": "1.0.0",
-  "description": "Hi",
+  "description": "This is a small web application",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "cross-env NODE_ENV=development node index.js",
+    "start": "node index.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kyle7158473/liff-workshop-demo.git"
+  "license": "MIT",
+  "dependencies": {
+    "cross-env": "^7.0.2",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1"
   },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/kyle7158473/liff-workshop-demo/issues"
-  },
-  "homepage": "https://github.com/kyle7158473/liff-workshop-demo#readme"
+  "engines": {
+    "node": "12.x"
+  }
 }
